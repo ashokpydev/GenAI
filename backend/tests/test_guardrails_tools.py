@@ -1,6 +1,7 @@
 from app.services.guardrails import mask_pii, validate_user_input
 from app.services.orchestration import classify_request
 from app.services.tools import list_tools
+from app.services.llm import estimate_tokens
 
 
 def test_prompt_injection_is_blocked():
@@ -22,3 +23,7 @@ def test_tool_registry_marks_sensitive_tools():
 def test_orchestrator_routes_analytics():
     decision = classify_request("Show top products by revenue")
     assert decision.route == "analytics"
+
+
+def test_local_token_estimator():
+    assert estimate_tokens("ContextOps AI local model") == 4

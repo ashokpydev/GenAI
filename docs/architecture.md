@@ -9,6 +9,7 @@ flowchart LR
   Docs --> Extract["Extract + Clean + Chunk"]
   Extract --> Embed["Local Embeddings"]
   Embed --> Store["SQL Metadata + Vector JSON"]
+  Embed --> Chroma["Optional Local ChromaDB"]
   API --> RAG["RAG Assistant"]
   RAG --> Store
   RAG --> Guard["Validator + Risk Score"]
@@ -45,3 +46,5 @@ flowchart LR
 - Replace deterministic answer composition with LangChain or LangGraph LLM calls.
 - Add Celery workers for background ingestion.
 - Replace local evaluation heuristics with RAGAS, DeepEval, or LangSmith evaluation pipelines.
+- Use Ollama for fully local LLM generation without paid API keys.
+- Use ChromaDB for local persistent vector storage without managed infrastructure.

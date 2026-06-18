@@ -76,7 +76,7 @@ def answer_question(db: Session, user: User, question: str, conversation_id: int
             "guardrail_flags": guardrail["flags"],
         }
 
-    matches = search_chunks(db, sanitized_question)
+    matches = search_chunks(db, sanitized_question, user=user)
     usable_matches = [(chunk, score) for chunk, score in matches if score > 0.06]
 
     if not usable_matches:

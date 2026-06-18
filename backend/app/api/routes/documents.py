@@ -1,7 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -16,8 +16,21 @@ from app.services.document_ingestion import index_document
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
+def index_document_by_id(document_id: int) -> None:
+    from app.db.session import SessionLocal
+
+    db = SessionLocal()
+    try:
+        document = db.get(Document, document_id)
+        if document:
+            index_document(db, document)
+    finally:
+        db.close()
+
+
 @router.post("/upload", response_model=DocumentRead)
 def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -36,7 +49,11 @@ def upload_document(
     db.add(document)
     db.commit()
     db.refresh(document)
-    indexed = index_document(db, document)
+    if settings.use_background_indexing:
+        background_tasks.add_task(index_document_by_id, document.id)
+        indexed = document
+    else:
+        indexed = index_document(db, document)
     write_audit(
         db,
         action="document.uploaded",
@@ -45,6 +62,16 @@ def upload_document(
         resource_id=str(document.id),
         details={"status": indexed.status.value, "filename": safe_name},
     )
+    return indexed
+
+
+@router.post("/{document_id}/index", response_model=DocumentRead)
+def reindex_document(document_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    document = db.get(Document, document_id)
+    if document is None or (current_user.role.value != "admin" and document.owner_id != current_user.id):
+        raise HTTPException(status_code=404, detail="Document not found.")
+    indexed = index_document(db, document)
+    write_audit(db, action="document.reindexed", user=current_user, resource_type="document", resource_id=str(document_id))
     return indexed
 
 

@@ -11,7 +11,8 @@ from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.models import Document, DocumentChunk, DocumentStatus
+from app.models import Document, DocumentChunk, DocumentStatus, User, UserRole
+from app.services.vector_store import mirror_chunks_to_vector_store, query_vector_store
 
 
 WORD_RE = re.compile(r"[a-zA-Z0-9_]+")
@@ -52,6 +53,20 @@ def embed_text(text: str) -> list[float]:
 
 def cosine_similarity(left: list[float], right: list[float]) -> float:
     return sum(a * b for a, b in zip(left, right))
+
+
+def lexical_score(query: str, text: str) -> float:
+    query_terms = WORD_RE.findall(query.lower())
+    if not query_terms:
+        return 0.0
+    text_terms = WORD_RE.findall(text.lower())
+    if not text_terms:
+        return 0.0
+    text_counts: dict[str, int] = {}
+    for term in text_terms:
+        text_counts[term] = text_counts.get(term, 0) + 1
+    matched = sum(min(3, text_counts.get(term, 0)) for term in query_terms)
+    return min(1.0, matched / max(1, len(query_terms)))
 
 
 def extract_text(path: Path, content_type: str) -> str:
@@ -116,17 +131,25 @@ def index_document(db: Session, document: Document) -> Document:
     document.status = DocumentStatus.processing
     db.commit()
     try:
+        db.query(DocumentChunk).filter(DocumentChunk.document_id == document.id).delete()
+        db.commit()
         text = clean_text(extract_text(Path(document.source_path), document.content_type))
         chunks = split_text(text)
+        created_chunks: list[DocumentChunk] = []
+        embeddings: list[list[float]] = []
         for index, chunk in enumerate(chunks):
-            db.add(
-                DocumentChunk(
-                    document_id=document.id,
-                    chunk_index=index,
-                    text=chunk,
-                    embedding=json.dumps(embed_text(chunk)),
-                )
+            embedding = embed_text(chunk)
+            document_chunk = DocumentChunk(
+                document_id=document.id,
+                chunk_index=index,
+                text=chunk,
+                embedding=json.dumps(embedding),
             )
+            db.add(document_chunk)
+            db.flush()
+            created_chunks.append(document_chunk)
+            embeddings.append(embedding)
+        mirror_chunks_to_vector_store(created_chunks, embeddings)
         document.status = DocumentStatus.indexed
         document.error_message = None
     except Exception as exc:  # pragma: no cover - defensive status capture
@@ -137,11 +160,20 @@ def index_document(db: Session, document: Document) -> Document:
     return document
 
 
-def search_chunks(db: Session, query: str, top_k: int | None = None) -> list[tuple[DocumentChunk, float]]:
+def search_chunks(db: Session, query: str, top_k: int | None = None, user: User | None = None) -> list[tuple[DocumentChunk, float]]:
     settings = get_settings()
+    limit = top_k or settings.top_k
     query_vector = embed_text(query)
     scored: list[tuple[DocumentChunk, float]] = []
-    for chunk in db.query(DocumentChunk).join(Document).filter(Document.status == DocumentStatus.indexed).all():
-        scored.append((chunk, cosine_similarity(query_vector, json.loads(chunk.embedding))))
+    chroma_ids = query_vector_store(query_vector, limit * 3)
+    chunk_query = db.query(DocumentChunk).join(Document).filter(Document.status == DocumentStatus.indexed)
+    if chroma_ids:
+        chunk_query = chunk_query.filter(DocumentChunk.id.in_(chroma_ids))
+    if user and user.role not in {UserRole.admin, UserRole.compliance_user}:
+        chunk_query = chunk_query.filter(Document.owner_id == user.id)
+    for chunk in chunk_query.all():
+        vector_score = cosine_similarity(query_vector, json.loads(chunk.embedding))
+        keyword_score = lexical_score(query, chunk.text)
+        scored.append((chunk, round((0.72 * vector_score) + (0.28 * keyword_score), 6)))
     scored.sort(key=lambda item: item[1], reverse=True)
-    return scored[: top_k or settings.top_k]
+    return scored[:limit]

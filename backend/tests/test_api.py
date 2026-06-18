@@ -3,6 +3,8 @@ import os
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 os.environ["ANALYTICS_DATABASE_URL"] = "sqlite:///:memory:"
 os.environ["UPLOAD_DIR"] = "storage/test-uploads"
+os.environ["USE_BACKGROUND_INDEXING"] = "false"
+os.environ["VECTOR_STORE_PROVIDER"] = "local_sql"
 
 from fastapi.testclient import TestClient
 

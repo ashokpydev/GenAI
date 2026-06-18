@@ -1,0 +1,8 @@
+-r requirements.txt
+alembic
+celery
+redis
+chromadb
+sentence-transformers
+scikit-learn
+numpy

@@ -14,6 +14,7 @@ AI-powered enterprise knowledge, analytics, and action copilot built from the cl
 - Evaluation cases and evaluation-run metrics.
 - Admin user management, approval queue, tool dashboard, token/cost telemetry.
 - Docker Compose setup, tests, architecture notes, deployment guide, demo data, and demo script.
+- Optional free local stack support: Ollama, ChromaDB, Celery, Redis, and Alembic scaffolding.
 
 ## Quick Start
 
@@ -53,6 +54,20 @@ docker compose up --build
 ```bash
 cd backend
 pytest
+```
+
+## Free Local AI Options
+
+The app runs without paid APIs. For stronger local AI behavior, install optional open-source dependencies and run Ollama:
+
+```bash
+cd backend
+pip install -r requirements-local.txt
+ollama pull llama3.2
+set LLM_PROVIDER=ollama
+set OLLAMA_MODEL=llama3.2
+set VECTOR_STORE_PROVIDER=chroma
+uvicorn app.main:app --reload
 ```
 
 ## Demo

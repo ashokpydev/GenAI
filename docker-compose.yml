@@ -7,6 +7,9 @@ services:
       DATABASE_URL: sqlite:///./contextops.db
       ANALYTICS_DATABASE_URL: sqlite:///./demo_analytics.db
       SECRET_KEY: local-dev-secret
+      LLM_PROVIDER: ollama
+      VECTOR_STORE_PROVIDER: chroma
+      USE_BACKGROUND_INDEXING: "true"
     ports:
       - "8000:8000"
     volumes:
@@ -20,3 +23,8 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"

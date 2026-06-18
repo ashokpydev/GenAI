@@ -160,7 +160,17 @@ export function SettingsPage() {
         </div>
       </header>
       <div className="settings-grid">
-        {["Human approval for sensitive tools", "PII masking", "Prompt injection detection", "OpenTelemetry ready", "OAuth2 ready", "Cost-aware model routing"].map((item) => (
+        {[
+          "Human approval for sensitive tools",
+          "PII masking",
+          "Prompt injection detection",
+          "Ollama local LLM ready",
+          "ChromaDB local vector store ready",
+          "Celery/Redis worker ready",
+          "Alembic migration scaffold",
+          "OAuth2 ready",
+          "Cost-aware model routing"
+        ].map((item) => (
           <article className="panel-card" key={item}>
             <Settings size={18} />
             <strong>{item}</strong>
