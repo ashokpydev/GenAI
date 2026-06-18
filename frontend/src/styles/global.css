@@ -70,7 +70,8 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   padding: 11px 12px;
@@ -208,6 +209,11 @@ nav {
 
 .icon-button.primary {
   background: #2563eb;
+  color: #ffffff;
+}
+
+.icon-button.danger {
+  background: #dc2626;
   color: #ffffff;
 }
 
@@ -415,6 +421,7 @@ th {
 
 .timeline article {
   gap: 12px;
+  justify-content: space-between;
   background: #ffffff;
   border: 1px solid #d9e2ee;
   border-radius: 8px;
@@ -425,6 +432,11 @@ th {
   display: block;
   color: #64748b;
   font-size: 13px;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .stat-card {

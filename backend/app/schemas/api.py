@@ -56,6 +56,10 @@ class ChatResponse(BaseModel):
     confidence_score: float
     hallucination_risk: float
     latency_ms: int
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    cost_usd: float = 0.0
+    guardrail_flags: list[str] = []
 
 
 class AnalyticsRequest(BaseModel):
@@ -84,3 +88,24 @@ class PromptRead(PromptCreate):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class ToolRunRequest(BaseModel):
+    tool_name: str
+    payload: dict[str, Any] = {}
+
+
+class ApprovalDecisionRequest(BaseModel):
+    status: str = Field(pattern="^(approved|rejected)$")
+    decision_note: str = ""
+
+
+class EvaluationCaseCreate(BaseModel):
+    question: str
+    expected_answer: str
+    required_source: str = ""
+
+
+class UserUpdate(BaseModel):
+    role: UserRole | None = None
+    is_active: bool | None = None

@@ -3,7 +3,9 @@ import hashlib
 import json
 import math
 import re
+import zipfile
 from pathlib import Path
+from xml.etree import ElementTree
 
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
@@ -63,7 +65,51 @@ def extract_text(path: Path, content_type: str) -> str:
         with path.open("r", encoding="utf-8", errors="ignore", newline="") as handle:
             rows = csv.reader(handle)
             return "\n".join(" | ".join(row) for row in rows)
+    if suffix == ".docx":
+        return extract_openxml_text(path, ("word/document.xml",))
+    if suffix == ".pptx":
+        with zipfile.ZipFile(path) as archive:
+            slide_names = sorted(name for name in archive.namelist() if name.startswith("ppt/slides/slide") and name.endswith(".xml"))
+        return extract_openxml_text(path, tuple(slide_names))
+    if suffix == ".xlsx":
+        with zipfile.ZipFile(path) as archive:
+            sheet_names = sorted(name for name in archive.namelist() if name.startswith("xl/worksheets/sheet") and name.endswith(".xml"))
+            shared_strings = extract_shared_strings(archive)
+            values: list[str] = []
+            for sheet_name in sheet_names:
+                root = ElementTree.fromstring(archive.read(sheet_name))
+                for cell in root.iter():
+                    if cell.tag.endswith("}c"):
+                        cell_type = cell.attrib.get("t")
+                        value = next((child.text for child in cell if child.tag.endswith("}v")), "")
+                        if value and cell_type == "s":
+                            value = shared_strings[int(value)]
+                        if value:
+                            values.append(value)
+            return "\n".join(values)
     return path.read_text(encoding="utf-8", errors="ignore")
+
+
+def extract_openxml_text(path: Path, member_names: tuple[str, ...]) -> str:
+    values: list[str] = []
+    with zipfile.ZipFile(path) as archive:
+        for member_name in member_names:
+            if member_name not in archive.namelist():
+                continue
+            root = ElementTree.fromstring(archive.read(member_name))
+            values.extend(node.text or "" for node in root.iter() if node.tag.endswith("}t"))
+    return "\n".join(value for value in values if value.strip())
+
+
+def extract_shared_strings(archive: zipfile.ZipFile) -> list[str]:
+    if "xl/sharedStrings.xml" not in archive.namelist():
+        return []
+    root = ElementTree.fromstring(archive.read("xl/sharedStrings.xml"))
+    values: list[str] = []
+    for item in root:
+        parts = [node.text or "" for node in item.iter() if node.tag.endswith("}t")]
+        values.append("".join(parts))
+    return values
 
 
 def index_document(db: Session, document: Document) -> Document:

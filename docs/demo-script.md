@@ -6,6 +6,9 @@
 4. Show that the answer includes a citation and a hallucination risk score.
 5. Open Analytics Assistant and ask: `What were the top products by revenue?`
 6. Run a blocked query such as `DROP TABLE sales` to demonstrate SQL safety.
-7. Open Audit Logs to show traceability.
-8. Open Usage Dashboard to show monitoring metrics.
-9. Open Prompt Management to show versioned prompt templates.
+7. Open Controlled Tools and run `ticket_creator` with a simple JSON payload.
+8. Open Human Approvals and approve the pending tool request.
+9. Open Audit Logs to show traceability.
+10. Open Usage Dashboard to show monitoring metrics, tokens, tool runs, and pending approvals.
+11. Open Prompt Management to show versioned prompt templates.
+12. Open Evaluation Dashboard after adding evaluation cases through the API.

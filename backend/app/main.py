@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import admin, analytics, auth, chat, documents, prompts
+from app.api.routes import admin, agents, analytics, approvals, auth, chat, documents, evaluations, prompts, tools
 from app.db.init_db import seed_db
 from app.db.session import Base, SessionLocal, engine
 
@@ -16,10 +16,14 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(auth.router)
+    app.include_router(agents.router)
     app.include_router(documents.router)
     app.include_router(chat.router)
     app.include_router(analytics.router)
     app.include_router(prompts.router)
+    app.include_router(tools.router)
+    app.include_router(approvals.router)
+    app.include_router(evaluations.router)
     app.include_router(admin.router)
 
     @app.on_event("startup")

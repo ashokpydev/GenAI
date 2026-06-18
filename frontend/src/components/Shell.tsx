@@ -3,6 +3,7 @@ import {
   BarChart3,
   Bot,
   ClipboardCheck,
+  Hammer,
   FileText,
   History,
   LayoutDashboard,
@@ -10,7 +11,8 @@ import {
   Settings,
   ShieldCheck,
   SlidersHorizontal,
-  UploadCloud
+  UploadCloud,
+  Users
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { User } from "../lib/api";
@@ -20,10 +22,13 @@ export type View =
   | "upload"
   | "documents"
   | "analytics"
+  | "tools"
+  | "approvals"
   | "prompts"
   | "evaluation"
   | "audit"
   | "usage"
+  | "users"
   | "settings";
 
 const items: Array<{ id: View; label: string; icon: typeof Bot }> = [
@@ -31,10 +36,13 @@ const items: Array<{ id: View; label: string; icon: typeof Bot }> = [
   { id: "upload", label: "Upload", icon: UploadCloud },
   { id: "documents", label: "Documents", icon: FileText },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "tools", label: "Tools", icon: Hammer },
+  { id: "approvals", label: "Approvals", icon: ShieldCheck },
   { id: "prompts", label: "Prompts", icon: SlidersHorizontal },
   { id: "evaluation", label: "Evaluation", icon: ClipboardCheck },
   { id: "audit", label: "Audit Logs", icon: History },
   { id: "usage", label: "Usage", icon: Activity },
+  { id: "users", label: "Users", icon: Users },
   { id: "settings", label: "Settings", icon: Settings }
 ];
 

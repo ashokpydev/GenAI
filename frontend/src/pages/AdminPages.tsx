@@ -1,4 +1,4 @@
-import { Activity, ClipboardCheck, FileText, History, Settings } from "lucide-react";
+import { Activity, ClipboardCheck, FileText, History, Settings, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "../lib/api";
@@ -107,6 +107,44 @@ export function UsagePage() {
         <StatCard label="Documents" value={usage.documents ?? 0} icon={<FileText size={18} />} />
         <StatCard label="Messages" value={usage.chat_messages ?? 0} icon={<ClipboardCheck size={18} />} />
         <StatCard label="Avg latency" value={`${Math.round(usage.average_latency_ms ?? 0)} ms`} icon={<History size={18} />} />
+        <StatCard label="Prompt tokens" value={usage.prompt_tokens ?? 0} icon={<Activity size={18} />} />
+        <StatCard label="Tool runs" value={usage.tool_executions ?? 0} icon={<ClipboardCheck size={18} />} />
+        <StatCard label="Pending approvals" value={usage.pending_approvals ?? 0} icon={<History size={18} />} />
+        <StatCard label="Cost" value={`$${Number(usage.cost_usd ?? 0).toFixed(2)}`} icon={<Activity size={18} />} />
+      </div>
+    </section>
+  );
+}
+
+export function UsersPage() {
+  const [users, setUsers] = useState<any[]>([]);
+  useEffect(() => {
+    api.get("/admin/users").then((response) => setUsers(response.data)).catch(() => setUsers([]));
+  }, []);
+  return (
+    <section className="page">
+      <header className="page-header">
+        <div>
+          <h1>User Management</h1>
+          <p>Review roles and active access state.</p>
+        </div>
+      </header>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id}>
+                <td><Users size={15} /> {user.full_name}</td>
+                <td>{user.email}</td>
+                <td>{user.role}</td>
+                <td>{user.is_active ? "active" : "disabled"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   );

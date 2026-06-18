@@ -8,6 +8,11 @@ AI-powered enterprise knowledge, analytics, and action copilot built from the cl
 - React + TypeScript frontend dashboard with all required MVP pages.
 - Local deterministic embeddings for offline demos, with clear extension points for pgvector, Qdrant, OpenAI, Gemini, or Azure OpenAI.
 - Safe SQL analytics agent that allows only `SELECT` queries and enforces row limits.
+- Guardrails for prompt-injection detection and PII masking.
+- Agent router for RAG, analytics, summarization, report, action, and guardrail paths.
+- Controlled tools with approval workflow for ticket creation, email drafts, and reports.
+- Evaluation cases and evaluation-run metrics.
+- Admin user management, approval queue, tool dashboard, token/cost telemetry.
 - Docker Compose setup, tests, architecture notes, deployment guide, demo data, and demo script.
 
 ## Quick Start
@@ -63,6 +68,8 @@ For analytics, ask:
 ```text
 What were the top products by revenue?
 ```
+
+To demonstrate approvals, open Controlled Tools and run `ticket_creator`; then open Human Approvals and approve the pending request.
 
 ## Documents
 

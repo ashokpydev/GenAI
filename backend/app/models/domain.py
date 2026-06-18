@@ -21,6 +21,18 @@ class DocumentStatus(str, Enum):
     failed = "failed"
 
 
+class ApprovalStatus(str, Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+
+
+class EvaluationStatus(str, Enum):
+    queued = "queued"
+    completed = "completed"
+    failed = "failed"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -83,6 +95,9 @@ class ChatMessage(Base):
     confidence_score: Mapped[float] = mapped_column(Float, default=0.0)
     hallucination_risk: Mapped[float] = mapped_column(Float, default=1.0)
     latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    prompt_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    completion_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
@@ -121,3 +136,53 @@ class AnalyticsHistory(Base):
     sql: Mapped[str] = mapped_column(Text)
     summary: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class ToolExecution(Base):
+    __tablename__ = "tool_executions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    tool_name: Mapped[str] = mapped_column(String(120), index=True)
+    input_json: Mapped[str] = mapped_column(Text, default="{}")
+    output_json: Mapped[str] = mapped_column(Text, default="{}")
+    status: Mapped[str] = mapped_column(String(40), default="completed")
+    requires_approval: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class ApprovalRequest(Base):
+    __tablename__ = "approval_requests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    requester_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    tool_name: Mapped[str] = mapped_column(String(120), index=True)
+    payload_json: Mapped[str] = mapped_column(Text, default="{}")
+    reason: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[ApprovalStatus] = mapped_column(SAEnum(ApprovalStatus), default=ApprovalStatus.pending)
+    reviewer_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    decision_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class EvaluationCase(Base):
+    __tablename__ = "evaluation_cases"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    question: Mapped[str] = mapped_column(Text)
+    expected_answer: Mapped[str] = mapped_column(Text)
+    required_source: Mapped[str] = mapped_column(String(255), default="")
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class EvaluationRun(Base):
+    __tablename__ = "evaluation_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    status: Mapped[EvaluationStatus] = mapped_column(SAEnum(EvaluationStatus), default=EvaluationStatus.queued)
+    metrics_json: Mapped[str] = mapped_column(Text, default="{}")
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

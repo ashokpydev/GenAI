@@ -12,9 +12,15 @@ flowchart LR
   API --> RAG["RAG Assistant"]
   RAG --> Store
   RAG --> Guard["Validator + Risk Score"]
+  API --> Agent["Router Agent"]
+  Agent --> RAG
+  Agent --> SQL
+  Agent --> Tools["Controlled Tool Registry"]
+  Tools --> Approval["Human Approval Queue"]
   API --> SQL["Analytics Agent"]
   SQL --> SQLGuard["SELECT-only SQL Validator"]
   SQLGuard --> DemoDB["Analytics Database"]
+  API --> Eval["Evaluation Harness"]
   API --> Audit["Audit Logs + Usage"]
 ```
 
@@ -25,7 +31,11 @@ flowchart LR
 - Grounded chat with citations, confidence, latency, and hallucination risk.
 - Safe analytics endpoint that allows only read-only SQL with row limits.
 - Prompt template management for admin users.
-- Audit logs, usage dashboard, and evaluation placeholder endpoints.
+- Prompt-injection detection and PII masking guardrails.
+- Router-style orchestration for RAG, analytics, report generation, sensitive actions, and guardrail blocking.
+- Controlled tool registry with human approval for sensitive operations.
+- Evaluation cases and evaluation runs with faithfulness, relevance, context, and risk metrics.
+- Audit logs, usage dashboard, token/cost metrics, tool counts, pending approval counts.
 - React dashboard pages for all required MVP screens.
 
 ## Extension Points
@@ -34,5 +44,4 @@ flowchart LR
 - Move vector storage from SQL JSON to PostgreSQL pgvector or Qdrant.
 - Replace deterministic answer composition with LangChain or LangGraph LLM calls.
 - Add Celery workers for background ingestion.
-- Add human approval records for ticket creation and email tools.
-- Add RAGAS, DeepEval, or LangSmith evaluation pipelines.
+- Replace local evaluation heuristics with RAGAS, DeepEval, or LangSmith evaluation pipelines.

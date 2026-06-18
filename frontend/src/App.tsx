@@ -3,10 +3,11 @@ import type { ReactElement } from "react";
 import { Shell, type View } from "./components/Shell";
 import { api, type User } from "./lib/api";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
-import { AuditPage, EvaluationPage, PromptPage, SettingsPage, UsagePage } from "./pages/AdminPages";
+import { AuditPage, EvaluationPage, PromptPage, SettingsPage, UsagePage, UsersPage } from "./pages/AdminPages";
 import { ChatPage } from "./pages/ChatPage";
 import { DocumentsPage, UploadPage } from "./pages/DocumentsPage";
 import { LoginPage } from "./pages/LoginPage";
+import { ApprovalsPage, ToolsPage } from "./pages/ToolsPage";
 
 export function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -30,10 +31,13 @@ export function App() {
     upload: <UploadPage />,
     documents: <DocumentsPage />,
     analytics: <AnalyticsPage />,
+    tools: <ToolsPage />,
+    approvals: <ApprovalsPage />,
     prompts: <PromptPage />,
     evaluation: <EvaluationPage />,
     audit: <AuditPage />,
     usage: <UsagePage />,
+    users: <UsersPage />,
     settings: <SettingsPage />
   };
 

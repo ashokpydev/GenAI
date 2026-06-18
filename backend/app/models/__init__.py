@@ -1,12 +1,18 @@
 from app.models.domain import (  # noqa: F401
     AnalyticsHistory,
+    ApprovalRequest,
+    ApprovalStatus,
     AuditLog,
     ChatMessage,
     Conversation,
     Document,
     DocumentChunk,
     DocumentStatus,
+    EvaluationCase,
+    EvaluationRun,
+    EvaluationStatus,
     PromptTemplate,
+    ToolExecution,
     User,
     UserRole,
 )
