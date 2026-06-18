@@ -1,0 +1,7 @@
+ContextOps AI is an enterprise GenAI copilot for trusted knowledge retrieval, structured analytics, and controlled action planning.
+
+Approved answers must be grounded in indexed company sources. If source context is missing, the assistant must say it does not know.
+
+Sensitive operations such as ticket creation, email sending, and workflow execution require human approval before completion.
+
+Every AI response must keep an audit trail with user, session, source citations, latency, confidence, and hallucination risk.
